@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Primitive Mind</title>
+<!-- Favicon: Lucide "bug-play" icon. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyYzJjMmEiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMCAxOS42NTVBNiA2IDAgMCAxIDYgMTR2LTNhNCA0IDAgMCAxIDQtNGg0YTQgNCAwIDAgMSA0IDMuOTciLz48cGF0aCBkPSJNMTQgMTUuMDAzYTEgMSAwIDAgMSAxLjUxNy0uODU5bDQuOTk3IDIuOTk3YTEgMSAwIDAgMSAwIDEuNzE4bC00Ljk5NyAyLjk5N2ExIDEgMCAwIDEtMS41MTctLjg2eiIvPjxwYXRoIGQ9Ik0xNC4xMiAzLjg4IDE2IDIiLz48cGF0aCBkPSJNMjEgNWE0IDQgMCAwIDEtMy41NSAzLjk3Ii8+PHBhdGggZD0iTTMgMjFhNCA0IDAgMCAxIDMuODEtNCIvPjxwYXRoIGQ9Ik0zIDVhNCA0IDAgMCAwIDMuNTUgMy45NyIvPjxwYXRoIGQ9Ik02IDEzSDIiLz48cGF0aCBkPSJtOCAyIDEuODggMS44OCIvPjxwYXRoIGQ9Ik05IDcuMTNWNmEzIDMgMCAxIDEgNiAwdjEuMTMiLz48L3N2Zz4=">
+
+<style>
+  :root {
+    --bg: #faf9f7;
+    --border: #d3d1c7;
+    --ink: #2c2c2a;
+    --muted: #888780;
+    --chip-bg: #ffffff;
+    --chip-hover: #ede9e0;
+    --dark-bg: #2c2c2a;
+    --dark-fg: #faf9f7;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  a { color: inherit; }
+
+  /* ---------------------------------------------------------- top bar */
+
+  .topbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-bottom: 0.5px solid var(--border);
+    gap: 16px;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: bold;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .logo svg {
+    flex: 0 0 auto;
+  }
+
+  .topbar-center {
+    display: flex;
+    gap: 24px;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .topbar-center a {
+    text-decoration: none;
+    background: none;
+    border: none;
+    color: #666;
+    font-family: inherit;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: color 0.15s ease;
+  }
+
+  .topbar-center a:hover {
+    color: var(--ink);
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+  }
+
+  .badge {
+    border: 0.5px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+
+  .reset-btn {
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .reset-btn:hover { background: var(--chip-hover); }
+
+  /* ---------------------------------------------------------- modal */
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(44, 44, 42, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+
+  .modal-overlay.hidden { display: none; }
+
+  .modal-box {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    max-width: 460px;
+    width: calc(100% - 40px);
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+
+  .modal-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-close {
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 6px;
+  }
+
+  .modal-close:hover { color: var(--muted); }
+
+  .modal-body {
+    color: var(--ink);
+    white-space: pre-line;
+  }
+
+  /* ---------------------------------------------------------- main panels */
+
+  .main-panels {
+    flex: 1 1 auto;
+    display: flex;
+    min-height: 0;
+  }
+
+  .left-panel {
+    flex: 0 0 300px;
+    border-right: 0.5px solid var(--border);
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  .category {
+    margin-bottom: 18px;
+  }
+
+  .category-title {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip {
+    background: var(--chip-bg);
+    border: 0.5px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 3px;
+    user-select: none;
+    transition: background 0.1s ease;
+  }
+
+  .chip:hover {
+    background: var(--chip-hover);
+  }
+
+  .left-panel-message {
+    padding: 20px 4px;
+    color: var(--muted);
+  }
+
+  /* ---------------------------------------------------------- right panel */
+
+  .right-panel {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .dialogue-history {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 16px 20px;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+    background: none;
+    border: none;
+  }
+
+  .dialogue-placeholder {
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  .turn {
+    margin-bottom: 16px;
+  }
+
+  .turn-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+
+  .token {
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  .turn-error {
+    color: #a33;
+  }
+
+  .divider {
+    flex: 0 0 auto;
+    border-top: 0.5px solid var(--border);
+  }
+
+  .debug-panel {
+    flex: 0 0 auto;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 12px 20px 16px;
+  }
+
+  .debug-steps {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .step-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 0.5px solid var(--border);
+    background: var(--chip-bg);
+    padding: 0;
+  }
+
+  .step-dot.active {
+    background: var(--dark-bg);
+    border-color: var(--dark-bg);
+  }
+
+  .debug-step-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-left: 4px;
+  }
+
+  #debug-hint {
+    margin-bottom: 10px;
+  }
+
+  .debug-content {
+    min-height: 140px;
+    overflow-x: auto;
+  }
+
+  .debug-content .hint {
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .debug-placeholder {
+    color: var(--muted);
+    padding: 16px 0;
+  }
+
+  .debug-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  .debug-nav button {
+    border: 0.5px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 3px;
+  }
+
+  .debug-nav button:hover:not(:disabled) { background: var(--chip-hover); }
+  .debug-nav button:disabled { color: var(--border); cursor: default; }
+
+  /* mini embedding bars, reused by status bar + embeddings step */
+
+  .emb-row {
+    display: grid;
+    grid-template-columns: 66px 1fr 34px;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+  }
+
+  .emb-label { color: var(--muted); font-size: 11px; }
+  .emb-value { color: var(--muted); font-size: 11px; text-align: right; }
+
+  .emb-bar-track {
+    display: block;
+    height: 8px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .emb-bar-fill {
+    display: block;
+    height: 100%;
+    background: var(--dark-bg);
+  }
+
+  /* embeddings table (step 2) */
+
+  .emb-table {
+    display: grid;
+    grid-template-columns: 64px repeat(6, 44px);
+    gap: 3px 6px;
+    align-items: center;
+    font-size: 11px;
+  }
+
+  .emb-table .col-head {
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .emb-table .row-head {
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mini-bar {
+    height: 12px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .mini-bar-fill {
+    display: block;
+    height: 100%;
+    background: var(--dark-bg);
+  }
+
+  /* attention heatmap (step 3) */
+
+  .attn-table {
+    border-collapse: collapse;
+    font-size: 10px;
+  }
+
+  .attn-table th, .attn-table td {
+    padding: 3px 5px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .attn-table th {
+    color: var(--muted);
+    font-weight: normal;
+  }
+
+  .attn-table td.row-label {
+    color: var(--muted);
+    text-align: right;
+  }
+
+  .attn-cell {
+    width: 20px;
+    min-width: 20px;
+  }
+
+  /* logits bars (step 4) */
+
+  .logit-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 42px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .logit-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .logit-value { color: var(--muted); font-size: 11px; text-align: right; }
+
+  .logit-bar-track {
+    height: 10px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .logit-bar-fill {
+    display: block;
+    height: 100%;
+    background: var(--dark-bg);
+  }
+
+  .tokenize-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tokenize-row .chip {
+    cursor: default;
+  }
+
+  .tokenize-row .chip.tag {
+    background: var(--dark-bg);
+    color: var(--dark-fg);
+    border-color: var(--dark-bg);
+  }
+
+  /* ---------------------------------------------------------- constructor */
+
+  .constructor {
+    flex: 0 0 auto;
+    border-top: 0.5px solid var(--border);
+    padding: 12px 20px;
+  }
+
+  .constructor-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .constructor-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .pills {
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 26px;
+  }
+
+  .pills-placeholder {
+    color: var(--muted);
+    align-self: center;
+  }
+
+  .pill {
+    background: var(--dark-bg);
+    color: var(--dark-fg);
+    padding: 3px 6px 3px 10px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+  }
+
+  .pill:hover { opacity: 0.85; }
+
+  .pill .pill-x {
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  .send-btn, .clear-btn {
+    flex: 0 0 auto;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 7px 18px;
+    border-radius: 3px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+  }
+
+  .send-btn {
+    border: 0.5px solid var(--ink);
+    background: var(--dark-bg);
+    color: var(--dark-fg);
+  }
+
+  .send-btn:hover:not(:disabled) { opacity: 0.85; }
+
+  .send-btn:disabled {
+    background: var(--chip-bg);
+    color: var(--border);
+    border-color: var(--border);
+    cursor: default;
+  }
+
+  .clear-btn {
+    border: 0.5px solid var(--border);
+    background: none;
+    color: var(--ink);
+  }
+
+  .clear-btn:hover { background: var(--chip-hover); }
+
+  /* ---------------------------------------------------------- status bar */
+
+  .statusbar {
+    flex: 0 0 auto;
+    border-top: 0.5px solid var(--border);
+    padding: 6px 20px;
+    font-size: 11px;
+    color: var(--muted);
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .statusbar .status-word {
+    color: var(--ink);
+    font-weight: bold;
+    flex: 0 0 auto;
+  }
+
+  .statusbar .status-bars {
+    display: flex;
+    gap: 14px;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+  }
+
+  .statusbar .status-bars .emb-row {
+    grid-template-columns: 52px 60px 30px;
+    margin-bottom: 0;
+  }
+
+  /* ---------------------------------------------------------- footer */
+
+  footer {
+    flex: 0 0 auto;
+    border-top: 0.5px solid var(--border);
+    padding: 8px 0;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============================================================ top bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2c2c2a"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M10 19.655A6 6 0 0 1 6 14v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 3.97"/>
+          <path d="M14 15.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997a1 1 0 0 1-1.517-.86z"/>
+          <path d="M14.12 3.88 16 2"/>
+          <path d="M21 5a4 4 0 0 1-3.55 3.97"/>
+          <path d="M3 21a4 4 0 0 1 3.81-4"/>
+          <path d="M3 5a4 4 0 0 0 3.55 3.97"/>
+          <path d="M6 13H2"/>
+          <path d="m8 2 1.88 1.88"/>
+          <path d="M9 7.13V6a3 3 0 1 1 6 0v1.13"/>
+        </svg>
+        primitive mind
+      </span>
+    </div>
+    <nav class="topbar-center">
+      <a href="#" data-modal="about">About</a>
+      <a href="#" data-modal="how">How it works</a>
+      <a href="#" data-modal="model">Model</a>
+      <a href="#" data-modal="policy">Policy</a>
+    </nav>
+    <div class="topbar-right">
+      <button id="reset-btn" class="badge reset-btn" type="button">RESET</button>
+    </div>
+  </header>
+
+  <!-- ============================================================ modal -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span id="modal-title-text"></span>
+        <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body-text"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ main -->
+  <div class="main-panels" id="main-panels">
+
+    <!-- left panel: word clouds -->
+    <aside class="left-panel" id="left-panel">
+      <div class="left-panel-message">Loading vocabulary&hellip;</div>
+    </aside>
+
+    <!-- right panel: dialogue + debug -->
+    <section class="right-panel">
+      <div class="dialogue-history" id="dialogue-history">
+        <div class="dialogue-placeholder hint">Click words on the left to build a HUM turn, then press SEND.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="debug-panel" id="debug-panel">
+        <div class="debug-steps" id="debug-steps">
+          <button class="step-dot" data-step="0" aria-label="Step 1: tokenize"></button>
+          <button class="step-dot" data-step="1" aria-label="Step 2: embeddings"></button>
+          <button class="step-dot" data-step="2" aria-label="Step 3: attention"></button>
+          <button class="step-dot" data-step="3" aria-label="Step 4: logits"></button>
+          <span class="debug-step-label" id="debug-step-label">1. TOKENIZE</span>
+        </div>
+        <div class="hint" id="debug-hint" style="display:none;">Use PREV / NEXT to walk through the forward pass step by step</div>
+        <div class="debug-content" id="debug-content">
+          <div class="debug-placeholder">Send a message to see the forward pass.</div>
+        </div>
+        <div class="debug-nav">
+          <button id="debug-prev">&lsaquo; PREV</button>
+          <button id="debug-next">NEXT &rsaquo;</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ constructor -->
+  <div class="constructor">
+    <div class="constructor-label">YOUR MESSAGE</div>
+    <div class="constructor-row">
+      <div class="pills" id="message-pills">
+        <span class="pills-placeholder">click words on the left&hellip;</span>
+      </div>
+      <button class="clear-btn" id="clear-btn" type="button">CLEAR</button>
+      <button class="send-btn" id="send-btn" disabled>SEND</button>
+    </div>
+  </div>
+
+  <!-- ============================================================ status bar -->
+  <div class="statusbar" id="statusbar">
+    <span class="status-word" id="status-word">&mdash;</span>
+    <span id="status-hint">hover a word to inspect its embedding</span>
+  </div>
+
+  <!-- ============================================================ footer -->
+  <footer>&copy; 2026 Oleksandr Podoliako &middot; Primitive Mind &middot; v1.0</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  // =========================================================== config
+
+  const API_BASE = "http://localhost:8000";
+  const CATEGORY_ORDER = [
+    "beings", "body_states", "nature", "food_and_hunt",
+    "actions", "qualities", "time_and_direction",
+    "social_and_unknown", "dialog",
+  ];
+  const MAX_INPUT_WORDS = 10;
+  const MAX_HISTORY_TURNS = 4;
+  const TOKEN_ANIM_DELAY_MS = 150;
+
+  const MODAL_TEXT = {
+    about: {
+      title: "About",
+      body: "Primitive Mind is an AI Cro-Magnon — a tiny language model that speaks " +
+        "in 120 words and lets you watch every thought. It has no grammar beyond a " +
+        "handful of fixed sentence patterns, no tenses, no punctuation. Select " +
+        "words from the panel on the left, send a message, and watch how the model " +
+        "actually arrives at its reply: embeddings, attention weights, and output " +
+        "probabilities at every step.",
+    },
+    how: {
+      title: "How it works",
+      body: "Each word in the vocabulary is positioned in a six-dimensional space " +
+        "— alive, size, motion, emotion, abstract, good — values set by hand so " +
+        "any human can read them directly. When you send a message, the " +
+        "transformer runs a forward pass through 4 layers of self-attention. The " +
+        "debug panel shows the interpretable 6-dim vectors for your input, which " +
+        "tokens the model attends to, and the probability distribution it chooses " +
+        "from at each generation step.",
+    },
+    model: {
+      title: "Model",
+      body: "Decoder-only transformer: 4 layers, 4 attention heads, 128-dim " +
+        "embeddings, 817k parameters. Trained for 50 epochs on 461 " +
+        "human-validated dialogues built around a controlled 120-word " +
+        "vocabulary. Small enough to inspect completely. Small enough to be " +
+        "wrong in interesting ways.",
+    },
+    policy: {
+      title: "Policy",
+      body: "Primitive Mind does not collect, store, or transmit any user data. " +
+        "Messages are sent to a server for a single forward pass and are " +
+        "discarded immediately after the response is returned. No logs are kept. " +
+        "No data is used for training or shared with third parties. This is an " +
+        "independent educational project. Responses are generated by a toy " +
+        "model with a 120-word vocabulary and should not be relied upon for any factual, " +
+        "medical, legal, or other consequential purpose.",
+    },
+  };
+
+  // =========================================================== state
+
+  const state = {
+    vocabulary: null,       // full GET /vocabulary response
+    message: [],            // current constructor tokens
+    dialogue: [],            // [{speaker:'HUM'|'CRO', tokens:[...]}]
+    lastDebug: null,         // most recent response.debug payload
+    debugStep: 0,
+    sending: false,
+    debugNavHintDismissed: false,  // hint 2: "use PREV/NEXT..." -- dismissed after first click
+  };
+
+  // =========================================================== dom refs
+
+  const el = {
+    leftPanel: document.getElementById("left-panel"),
+    dialogueHistory: document.getElementById("dialogue-history"),
+    debugPanel: document.getElementById("debug-panel"),
+    debugSteps: document.getElementById("debug-steps"),
+    debugStepLabel: document.getElementById("debug-step-label"),
+    debugHint: document.getElementById("debug-hint"),
+    debugContent: document.getElementById("debug-content"),
+    debugPrev: document.getElementById("debug-prev"),
+    debugNext: document.getElementById("debug-next"),
+    resetBtn: document.getElementById("reset-btn"),
+    pills: document.getElementById("message-pills"),
+    sendBtn: document.getElementById("send-btn"),
+    clearBtn: document.getElementById("clear-btn"),
+    statusWord: document.getElementById("status-word"),
+    statusHint: document.getElementById("status-hint"),
+    modalOverlay: document.getElementById("modal-overlay"),
+    modalTitle: document.getElementById("modal-title-text"),
+    modalBody: document.getElementById("modal-body-text"),
+    modalClose: document.getElementById("modal-close"),
+  };
+
+  const STEP_LABELS = ["1. TOKENIZE", "2. EMBEDDINGS", "3. ATTENTION", "4. LOGITS"];
+  // Hint 3 -- permanent, per-step explanatory line shown below each step's title.
+  const STEP_HINTS = [
+    "Each word becomes an ID. [HUM] and [CRO] are turn markers — they tell the model who is speaking.",
+    "Each token is a point in 6-dimensional space. These values were set by hand — not learned.",
+    "[HUM] and [CRO] are turn markers. Darker = stronger attention. CRO attends to all previous tokens before generating a reply.",
+    "Raw scores before sampling. The model picks from this distribution — higher bar, more likely.",
+  ];
+
+  // =========================================================== helpers
+
+  function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+  function categoryLabel(cat) {
+    return cat.replace(/_/g, " ").toUpperCase();
+  }
+
+  function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+
+  function embeddingRowsHtml(vector, dims) {
+    return dims.map((dim, i) => {
+      const v = vector[i] !== undefined ? vector[i] : 0;
+      const pct = Math.round(clamp01(v) * 100);
+      return (
+        '<div class="emb-row">' +
+          '<span class="emb-label">' + dim + '</span>' +
+          '<span class="emb-bar-track"><span class="emb-bar-fill" style="width:' + pct + '%"></span></span>' +
+          '<span class="emb-value">' + v.toFixed(2) + '</span>' +
+        '</div>'
+      );
+    }).join("");
+  }
+
+  // =========================================================== vocabulary + word clouds
+
+  async function loadVocabulary() {
+    try {
+      const res = await fetch(API_BASE + "/vocabulary");
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      state.vocabulary = await res.json();
+      renderWordClouds();
+      el.sendBtn.disabled = state.message.length === 0;
+    } catch (err) {
+      el.leftPanel.innerHTML =
+        '<div class="left-panel-message">Could not reach the backend at ' +
+        '<strong>' + API_BASE + '</strong>.<br><br>Start it with:<br>' +
+        '<code>cd backend &amp;&amp; poetry run uvicorn main:app --reload --port 8000</code>' +
+        '<br><br>then reload this page.</div>';
+      el.sendBtn.disabled = true;
+    }
+  }
+
+  function renderWordClouds() {
+    const categories = state.vocabulary.categories || {};
+    const order = CATEGORY_ORDER.filter((c) => categories[c]);
+    // include any categories the backend has that aren't in our known order
+    Object.keys(categories).forEach((c) => { if (order.indexOf(c) === -1) order.push(c); });
+
+    el.leftPanel.innerHTML = "";
+    order.forEach((cat) => {
+      const words = categories[cat];
+      if (!words || !words.length) return;
+
+      const section = document.createElement("div");
+      section.className = "category";
+
+      const title = document.createElement("div");
+      title.className = "category-title";
+      title.textContent = categoryLabel(cat);
+      section.appendChild(title);
+
+      const row = document.createElement("div");
+      row.className = "chip-row";
+
+      words.forEach((word) => {
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.type = "button";
+        chip.textContent = word;
+        chip.addEventListener("click", () => addToken(word));
+        chip.addEventListener("mouseenter", () => showWordStatus(word));
+        chip.addEventListener("mouseleave", clearWordStatus);
+        row.appendChild(chip);
+      });
+
+      section.appendChild(row);
+      el.leftPanel.appendChild(section);
+    });
+
+    // Rebuilding the panel's content doesn't guarantee the browser resets
+    // its scroll position -- force it so BEINGS (the first category) is
+    // what's visible right after load, not wherever scrollTop happened to be.
+    el.leftPanel.scrollTop = 0;
+  }
+
+  // =========================================================== status bar
+
+  function showWordStatus(word) {
+    if (!state.vocabulary) return;
+    const vector = state.vocabulary.embeddings ? state.vocabulary.embeddings[word] : null;
+    const dims = state.vocabulary.dimensions || [];
+    el.statusWord.textContent = word;
+    if (vector) {
+      el.statusHint.innerHTML =
+        '<span class="status-bars">' + embeddingRowsHtml(vector, dims) + "</span>";
+    } else {
+      el.statusHint.textContent = "no embedding available";
+    }
+  }
+
+  function clearWordStatus() {
+    el.statusWord.textContent = "—";
+    el.statusHint.textContent = "hover a word to inspect its embedding";
+  }
+
+  // =========================================================== constructor / pills
+
+  function addToken(word) {
+    if (state.message.length >= MAX_INPUT_WORDS) return;
+    state.message.push(word);
+    renderPills();
+  }
+
+  function removeToken(index) {
+    state.message.splice(index, 1);
+    renderPills();
+  }
+
+  function renderPills() {
+    el.pills.innerHTML = "";
+    if (state.message.length === 0) {
+      const ph = document.createElement("span");
+      ph.className = "pills-placeholder";
+      ph.textContent = "click words on the left…";
+      el.pills.appendChild(ph);
+    } else {
+      state.message.forEach((word, i) => {
+        const pill = document.createElement("button");
+        pill.className = "pill";
+        pill.type = "button";
+        pill.title = "remove";
+        pill.innerHTML = word + ' <span class="pill-x">&times;</span>';
+        pill.addEventListener("click", () => removeToken(i));
+        pill.addEventListener("mouseenter", () => showWordStatus(word));
+        pill.addEventListener("mouseleave", clearWordStatus);
+        el.pills.appendChild(pill);
+      });
+    }
+    el.sendBtn.disabled = state.sending || state.message.length === 0 || !state.vocabulary;
+  }
+
+  // =========================================================== dialogue rendering
+
+  function clearDialoguePlaceholder() {
+    const ph = el.dialogueHistory.querySelector(".dialogue-placeholder");
+    if (ph) ph.remove();
+  }
+
+  function appendHumTurn(tokens) {
+    clearDialoguePlaceholder();
+    const turn = document.createElement("div");
+    turn.className = "turn hum";
+    turn.innerHTML =
+      '<div class="turn-label">HUMAN</div><div class="turn-tokens">' +
+      tokens.map((t) => '<span class="token">' + t + "</span>").join("") +
+      "</div>";
+    el.dialogueHistory.appendChild(turn);
+    el.dialogueHistory.scrollTop = el.dialogueHistory.scrollHeight;
+  }
+
+  async function appendCroTurnAnimated(tokens) {
+    clearDialoguePlaceholder();
+    const turn = document.createElement("div");
+    turn.className = "turn cro";
+    turn.innerHTML = '<div class="turn-label">CRO-MAGNON</div><div class="turn-tokens"></div>';
+    el.dialogueHistory.appendChild(turn);
+    const tokensEl = turn.querySelector(".turn-tokens");
+
+    if (tokens.length === 0) {
+      tokensEl.innerHTML = '<span class="token" style="color:var(--muted)">(nothing)</span>';
+      return;
+    }
+
+    for (const tok of tokens) {
+      const span = document.createElement("span");
+      span.className = "token";
+      span.textContent = tok;
+      tokensEl.appendChild(span);
+      el.dialogueHistory.scrollTop = el.dialogueHistory.scrollHeight;
+      await sleep(TOKEN_ANIM_DELAY_MS);
+    }
+  }
+
+  function appendErrorTurn(message) {
+    clearDialoguePlaceholder();
+    const turn = document.createElement("div");
+    turn.className = "turn";
+    turn.innerHTML = '<div class="turn-label turn-error">ERROR</div><div class="turn-tokens turn-error">' + message + "</div>";
+    el.dialogueHistory.appendChild(turn);
+    el.dialogueHistory.scrollTop = el.dialogueHistory.scrollHeight;
+  }
+
+  // CLEAR (constructor): clears only the message being built -- the
+  // dialogue history and 4-turn context are left untouched.
+  function clearMessage() {
+    state.message = [];
+    renderPills();
+  }
+
+  // RESET (top bar): clears the whole conversation -- dialogue history,
+  // the rolling 4-turn context, and any pending message pills.
+  function resetConversation() {
+    state.dialogue = [];
+    state.message = [];
+    state.lastDebug = null;
+    state.debugStep = 0;
+
+    el.dialogueHistory.innerHTML =
+      '<div class="dialogue-placeholder hint">Click words on the left to build a HUM turn, then press SEND.</div>';
+
+    renderPills();
+    renderDebugPanel();
+  }
+
+  // =========================================================== send / chat
+
+  async function sendMessage() {
+    if (state.sending || state.message.length === 0) return;
+
+    const words = state.message.slice();
+    const history = state.dialogue.slice(-MAX_HISTORY_TURNS).map((t) => ({
+      speaker: t.speaker,
+      tokens: t.tokens,
+    }));
+
+    state.sending = true;
+    el.sendBtn.disabled = true;
+
+    appendHumTurn(words);
+    state.dialogue.push({ speaker: "HUM", tokens: words });
+    state.message = [];
+    renderPills();
+
+    try {
+      const res = await fetch(API_BASE + "/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: words.join(" "), history: history }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error((data && data.detail) || ("HTTP " + res.status));
+      }
+
+      await appendCroTurnAnimated(data.response_tokens || []);
+      state.dialogue.push({ speaker: "CRO", tokens: data.response_tokens || [] });
+
+      state.lastDebug = data.debug || null;
+      state.debugStep = 0;
+      renderDebugPanel();
+    } catch (err) {
+      appendErrorTurn(String(err.message || err));
+    } finally {
+      state.sending = false;
+      renderPills();
+    }
+  }
+
+  // =========================================================== debug panel
+
+  function renderDebugPanel() {
+    // step dots
+    Array.from(el.debugSteps.querySelectorAll(".step-dot")).forEach((dot, i) => {
+      dot.classList.toggle("active", i === state.debugStep);
+    });
+    el.debugStepLabel.textContent = STEP_LABELS[state.debugStep];
+    el.debugPrev.disabled = state.debugStep === 0;
+    el.debugNext.disabled = state.debugStep === STEP_LABELS.length - 1;
+
+    // Hint 2 -- dismissable "use PREV/NEXT" nudge, shown once real debug
+    // data exists and until the user has clicked either nav button.
+    el.debugHint.style.display = (state.lastDebug && !state.debugNavHintDismissed) ? "" : "none";
+
+    if (!state.lastDebug) {
+      el.debugContent.innerHTML = '<div class="debug-placeholder">Send a message to see the forward pass.</div>';
+      return;
+    }
+
+    const renderers = [renderTokenizeStep, renderEmbeddingsStep, renderAttentionStep, renderLogitsStep];
+    const stepHint = '<div class="hint">' + STEP_HINTS[state.debugStep] + "</div>";
+    el.debugContent.innerHTML = stepHint + renderers[state.debugStep](state.lastDebug);
+  }
+
+  function renderTokenizeStep(debug) {
+    const chips = debug.prompt_tokens.map((tok) => {
+      const isTag = tok === "[HUM]" || tok === "[CRO]" || tok === "[PAD]";
+      return '<span class="chip' + (isTag ? " tag" : "") + '">' + tok + "</span>";
+    }).join("");
+    return '<div class="tokenize-row">' + chips + "</div>";
+  }
+
+  function renderEmbeddingsStep(debug) {
+    const dims = (state.vocabulary && state.vocabulary.dimensions) ||
+      ["alive", "size", "motion", "emotion", "abstract", "good"];
+    const dimAbbrev = dims.map((d) => d.slice(0, 3));
+
+    let html = '<div class="emb-table">';
+    html += '<div></div>';
+    dimAbbrev.forEach((d) => { html += '<div class="col-head">' + d + "</div>"; });
+
+    debug.embeddings.forEach((entry) => {
+      const vector = (state.vocabulary && state.vocabulary.embeddings &&
+        state.vocabulary.embeddings[entry.token]) || null;
+      html += '<div class="row-head" title="' + entry.token + '">' + entry.token + "</div>";
+      dims.forEach((_, i) => {
+        const v = vector ? clamp01(vector[i]) : 0;
+        const pct = Math.round(v * 100);
+        html += '<div class="mini-bar" title="' + (vector ? vector[i].toFixed(2) : "n/a") + '">' +
+          '<span class="mini-bar-fill" style="width:' + pct + '%"></span></div>';
+      });
+    });
+    html += "</div>";
+    html += '<div style="color:var(--muted);font-size:10px;margin-top:8px;">' +
+      "hand-authored 6-dim embeddings.json vectors per input token (not the model's learned 128-dim ones)</div>";
+    return html;
+  }
+
+  function renderAttentionStep(debug) {
+    if (!debug.attention || !debug.attention.length) {
+      return '<div class="debug-placeholder">no attention data</div>';
+    }
+    const lastLayer = debug.attention[debug.attention.length - 1];
+    const headWeights = lastLayer.weights[0]; // first head, T x T
+    const tokens = debug.prompt_tokens;
+
+    let html = '<div style="color:var(--muted);font-size:10px;margin-bottom:6px;">' +
+      "layer " + lastLayer.layer + ", head 0 &mdash; row attends to column</div>";
+    html += '<table class="attn-table"><thead><tr><th></th>';
+    tokens.forEach((t) => { html += "<th>" + t.replace(/[\[\]]/g, "") + "</th>"; });
+    html += "</tr></thead><tbody>";
+
+    headWeights.forEach((row, i) => {
+      html += "<tr><td class=\"row-label\">" + tokens[i].replace(/[\[\]]/g, "") + "</td>";
+      row.forEach((w) => {
+        const alpha = clamp01(w).toFixed(2);
+        html += '<td class="attn-cell" style="background:rgba(44,44,42,' + alpha + ')" title="' + w.toFixed(3) + '">&nbsp;</td>';
+      });
+      html += "</tr>";
+    });
+    html += "</tbody></table>";
+    return html;
+  }
+
+  function renderLogitsStep(debug) {
+    const topK = (debug.logits && debug.logits.top_k) || [];
+    if (!topK.length) return '<div class="debug-placeholder">no logits data</div>';
+    let html = '<div style="color:var(--muted);font-size:10px;margin-bottom:6px;">' +
+      (debug.logits.position || "next token") + "</div>";
+    topK.forEach((entry) => {
+      const pct = Math.round(clamp01(entry.prob) * 100);
+      html +=
+        '<div class="logit-row">' +
+          '<span class="logit-label">' + entry.token + "</span>" +
+          '<span class="logit-bar-track"><span class="logit-bar-fill" style="width:' + pct + '%"></span></span>' +
+          '<span class="logit-value">' + pct + "%</span>" +
+        "</div>";
+    });
+    return html;
+  }
+
+  // =========================================================== modals
+
+  function openModal(id) {
+    const entry = MODAL_TEXT[id];
+    if (!entry) return;
+    el.modalTitle.textContent = entry.title;
+    el.modalBody.textContent = entry.body;
+    el.modalOverlay.classList.remove("hidden");
+  }
+
+  function closeModal() {
+    el.modalOverlay.classList.add("hidden");
+  }
+
+  // =========================================================== wire up events
+
+  document.querySelectorAll(".topbar-center a").forEach((a) => {
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      openModal(a.getAttribute("data-modal"));
+    });
+  });
+  el.modalClose.addEventListener("click", closeModal);
+  el.modalOverlay.addEventListener("click", (e) => {
+    if (e.target === el.modalOverlay) closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+  });
+
+  el.debugPrev.addEventListener("click", () => {
+    state.debugNavHintDismissed = true;
+    if (state.debugStep > 0) { state.debugStep -= 1; }
+    renderDebugPanel();
+  });
+  el.debugNext.addEventListener("click", () => {
+    state.debugNavHintDismissed = true;
+    if (state.debugStep < STEP_LABELS.length - 1) { state.debugStep += 1; }
+    renderDebugPanel();
+  });
+  Array.from(el.debugSteps.querySelectorAll(".step-dot")).forEach((dot) => {
+    dot.addEventListener("click", () => {
+      state.debugStep = parseInt(dot.getAttribute("data-step"), 10);
+      renderDebugPanel();
+    });
+  });
+
+  el.sendBtn.addEventListener("click", sendMessage);
+  el.clearBtn.addEventListener("click", clearMessage);
+  el.resetBtn.addEventListener("click", resetConversation);
+
+  // =========================================================== init
+
+  renderPills();
+  renderDebugPanel();
+  loadVocabulary();
+})();
+</script>
+</body>
+</html>

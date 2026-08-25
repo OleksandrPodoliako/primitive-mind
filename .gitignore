@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+.venv/
+venv/
+
+# Poetry
+poetry.toml
+C:/pv/
+
+# Model — use Git LFS for .pt files
+# (do not ignore .pt — track via LFS instead)
+
+# Generated corpus (reproducible from scripts)
+model/corpus_raw.json
+model/corpus_extra.json
+model/corpus_extra_validated.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+.claude/
+
+# Temporary validation scripts
+model/corpus_val.py
+model/corpus_val_2.py
+
+# Intermediate corpus files
+model/corpus_validated.json
+model/corpus_extra.json
+model/corpus_extra_validated.json
+model/corpus_raw.json
