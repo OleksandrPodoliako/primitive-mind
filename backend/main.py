@@ -44,7 +44,7 @@ TOP_K_LOGITS = 8
 RESERVED_INPUT_WORDS = {"[pad]", "[hum]", "[cro]"}
 
 TEMPERATURE = 0.8
-REPETITION_PENALTY = 1.3  # logit /= 1.3 for a token already emitted this turn
+REPETITION_PENALTY = 1.5  # logit /= 1.5 for a token already emitted this turn
 EOS_TOKENS = ("[PAD]", "[HUM]")  # stop when the top predicted token is one of these
 EOS_MAX_LENGTH = 4  # stop once the response reaches this many tokens
 
