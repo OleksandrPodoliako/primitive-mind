@@ -121,6 +121,7 @@ def main(input_path=INPUT_PATH, output_path=OUTPUT_PATH):
                 time.sleep(BATCH_DELAY_SECONDS)
 
     situations = sorted({d["situation"] for d in valid_dialogues})
+    situation_valid_counts = Counter(d["situation"] for d in valid_dialogues)
     validated_corpus = {
         "meta": {"total": len(valid_dialogues), "situations": len(situations)},
         "dialogues": valid_dialogues,
@@ -134,6 +135,10 @@ def main(input_path=INPUT_PATH, output_path=OUTPUT_PATH):
     print(f"Valid: {valid_count}")
     print(f"Invalid: {invalid_count}")
     print(f"Wrote {len(valid_dialogues)} valid dialogues to {output_path}")
+    print()
+    print("Per-situation valid counts:")
+    for situation in situations:
+        print(f"  {situation:20s} {situation_valid_counts[situation]}")
     print()
     print("Most common rejection reasons:")
     for reason, count in reason_counter.most_common(10):

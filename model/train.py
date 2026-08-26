@@ -1,11 +1,15 @@
 """nanoGPT-style decoder-only transformer trained on model/corpus_final.json.
 
-Each 4-turn dialogue is flattened to a single token sequence:
-    [HUM] t1 t2 t3 [CRO] t4 t5 [HUM] t6 t7 [CRO] t8 t9
-and trained with standard next-token prediction, but the loss is masked to
-only the tokens that fall inside a CRO turn -- the model never gets gradient
-signal for predicting [HUM] turns, the [HUM]/[CRO] tags, or [PAD], so it only
-ever learns to produce CRO's replies.
+The corpus mixes 4-turn and 6-turn dialogues, so CONTEXT_LEN is set to 96 to
+comfortably cover the longer 6-turn sequences (worst case: 6 turns * (1 tag
++ 4 tokens) = 30 tokens, well under 96 -- the rest is [PAD]).
+
+Each dialogue is flattened to a single token sequence:
+    [HUM] t1 t2 t3 [CRO] t4 t5 ... [HUM] tn [CRO] tn+1
+padded to CONTEXT_LEN, with the next-token loss masked to CRO-turn content
+tokens only -- the model never gets gradient signal for predicting [HUM]
+turns, the [HUM]/[CRO] tags, or [PAD], so it only ever learns to produce
+CRO's replies.
 
 Outputs:
   model/tokenizer.json      word/tag -> id mapping
@@ -29,21 +33,23 @@ CHECKPOINT_PATH = MODEL_DIR / "primitive_mind.pt"
 
 SEED = 42
 
-# --- model spec --------------------------------------------------------
+# --- model spec ------------------------------------------------------------
 N_LAYERS = 4
 N_HEADS = 4
 D_MODEL = 128
 D_FF = 512
 DROPOUT = 0.1
-CONTEXT_LEN = 64
+CONTEXT_LEN = 96  # covers the longest dialogue (6 turns) with headroom
 
-# --- training spec -------------------------------------------------------
+# --- training spec ----------------------------------------------------------
 LR = 3e-4
 LR_MIN = 3e-5
 WEIGHT_DECAY = 0.1
 BATCH_SIZE = 32
 EPOCHS = 50
 PRINT_EVERY = 5
+
+SAMPLE_SITUATIONS = ("danger", "food", "water", "spirits-unknown", "us-vs-them")
 
 PAD_ID, HUM_ID, CRO_ID = 0, 1, 2
 
@@ -86,7 +92,9 @@ def build_tokenizer():
 def build_examples(corpus, token_to_id):
     """Each example: (ids, is_cro_content), both length CONTEXT_LEN.
     is_cro_content[i] marks whether ids[i] is a content token spoken by CRO --
-    this drives the next-token loss mask in the training loop below."""
+    this drives the next-token loss mask in the training loop below.
+    Dialogue turn count varies (4 or 6 in this corpus); only the padding
+    amount changes per-example."""
     examples = []
     for dialogue in corpus["dialogues"]:
         ids, is_cro = [], []
@@ -268,16 +276,21 @@ def train(model, dataset, device):
 # Sample generation
 # ===========================================================================
 
-def sample_generations(model, corpus, tokenizer, device, n_samples=3):
+def sample_generations(model, corpus, tokenizer, device, situations=SAMPLE_SITUATIONS):
     token_to_id = tokenizer["token_to_id"]
     id_to_token = tokenizer["id_to_token"]
 
-    dialogues = corpus["dialogues"]
-    step = max(1, len(dialogues) // n_samples)
-    picks = dialogues[::step][:n_samples]
+    by_situation = {}
+    for dialogue in corpus["dialogues"]:
+        by_situation.setdefault(dialogue["situation"], []).append(dialogue)
 
     print("\nSample generations:")
-    for dialogue in picks:
+    for situation in situations:
+        candidates = by_situation.get(situation)
+        if not candidates:
+            print(f"  [{situation}]  (no dialogues found for this situation)")
+            continue
+        dialogue = candidates[0]
         first_hum, first_cro = dialogue["turns"][0], dialogue["turns"][1]
 
         prompt_ids = [HUM_ID] + [token_to_id[t] for t in first_hum["tokens"]] + [CRO_ID]
@@ -316,9 +329,13 @@ def main():
     with open(CORPUS_PATH, "r", encoding="utf-8") as f:
         corpus = json.load(f)
 
+    turn_counts = {len(d["turns"]) for d in corpus["dialogues"]}
+    print(f"Corpus turn-length mix: {sorted(turn_counts)}")
+
     examples = build_examples(corpus, tokenizer["token_to_id"])
     dataset = DialogueDataset(examples)
     print(f"Loaded {len(dataset)} training examples from {CORPUS_PATH.name}")
+    print(f"Context length: {CONTEXT_LEN}")
     print(f"Device: {device}")
 
     model = PrimitiveMindGPT(vocab_size=vocab_size).to(device)

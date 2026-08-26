@@ -34,6 +34,7 @@ MODEL_DIR = BACKEND_DIR.parent / "model"
 EMBEDDINGS_PATH = MODEL_DIR / "embeddings.json"
 TOKENIZER_PATH = MODEL_DIR / "tokenizer.json"
 CHECKPOINT_PATH = MODEL_DIR / "primitive_mind.pt"
+MODEL_VERSION = "v2"
 
 sys.path.insert(0, str(MODEL_DIR))
 from train import PrimitiveMindGPT, HUM_ID, CRO_ID, CONTEXT_LEN  # noqa: E402
@@ -349,6 +350,7 @@ def health(request: Request):
     return {
         "status": "ok",
         "model_loaded": getattr(request.app.state, "model", None) is not None,
+        "model_version": MODEL_VERSION,
         "vocab_size": tokenizer["vocab_size"] if tokenizer else None,
         "device": str(getattr(request.app.state, "device", "unknown")),
     }
