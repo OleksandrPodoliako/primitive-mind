@@ -25,7 +25,7 @@ import torch
 import torch.nn.functional as F
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
@@ -118,9 +118,22 @@ app.add_middleware(
 _rate_limit_counts = defaultdict(lambda: {"date": None, "count": 0})
 
 
+def _client_ip(request: Request) -> str:
+    """Real client IP behind a reverse proxy (e.g. HF Spaces): trust the
+    leftmost entry of X-Forwarded-For over request.client.host, which
+    otherwise resolves to the proxy's own IP for every visitor. Safe to
+    trust here because the proxy fronts this process entirely -- there is
+    no direct path for an external client to reach this server and forge
+    the header themselves; the proxy always sets/overwrites it."""
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = _client_ip(request)
         today = date.today().isoformat()
 
         record = _rate_limit_counts[client_ip]
@@ -231,7 +244,7 @@ def generate_response(model, prompt_ids, id_to_token, device):
 
 class HistoryTurn(BaseModel):
     speaker: str
-    tokens: list[str]
+    tokens: list[str] = Field(max_length=10)
 
 
 class ChatRequest(BaseModel):
@@ -240,8 +253,10 @@ class ChatRequest(BaseModel):
     # HUM/CRO/HUM/CRO window the client is displaying). Optional and
     # stateless -- the client resends whatever context it wants included;
     # the server holds nothing between requests. Only the most recent
-    # MAX_HISTORY_TURNS are used if more are sent.
-    history: list[HistoryTurn] = []
+    # MAX_HISTORY_TURNS are used if more are sent. max_length caps list size
+    # at the Pydantic validation layer, before MAX_HISTORY_TURNS slicing --
+    # otherwise an arbitrarily large list is fully parsed/allocated first.
+    history: list[HistoryTurn] = Field(default=[], max_length=20)
 
 
 MAX_HISTORY_TURNS = 4
