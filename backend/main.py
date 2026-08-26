@@ -13,6 +13,7 @@ always matches the class that loads it -- model/train.py is the single
 source of truth for the architecture.
 """
 
+import asyncio
 import json
 import math
 import sys
@@ -49,6 +50,14 @@ REPETITION_PENALTY = 1.5  # logit /= 1.5 for a token already emitted this turn
 EOS_TOKENS = ("[PAD]", "[HUM]")  # stop when the top predicted token is one of these
 EOS_MAX_LENGTH = 4  # stop once the response reaches this many tokens
 
+# Caps how many /chat requests run inference at once -- excess requests
+# queue on the semaphore instead of all firing simultaneously and
+# thrashing the same CPU cores. Paired with torch.set_num_threads(1) below
+# (set once model is loaded) so each individual forward pass doesn't also
+# spawn its own internal BLAS thread pool on top of that contention.
+INFERENCE_CONCURRENCY = 4
+inference_semaphore = asyncio.Semaphore(INFERENCE_CONCURRENCY)
+
 
 # ===========================================================================
 # Model loading (once, at startup)
@@ -65,6 +74,7 @@ async def lifespan(app: FastAPI):
     model.load_state_dict(checkpoint["model_state_dict"])
     model.to(device)
     model.eval()
+    torch.set_num_threads(1)  # avoid per-request BLAS thread contention; see INFERENCE_CONCURRENCY above
 
     embeddings_data = json.loads(EMBEDDINGS_PATH.read_text(encoding="utf-8"))
     vocab_by_category = {}
@@ -238,6 +248,17 @@ def generate_response(model, prompt_ids, id_to_token, device):
     return [id_to_token[str(i)] for i in generated_ids]
 
 
+def _run_inference(model, prompt, prompt_ids, id_to_token, device):
+    """Both forward passes for one /chat request, bundled so the /chat route
+    can offload them to a worker thread as a single unit via
+    asyncio.to_thread -- keeps the event loop free to serve other requests
+    (e.g. /health) while inference runs, and inference_semaphore in the
+    caller caps how many of these run at once."""
+    embeddings, attentions, next_logits = debug_forward(model, prompt)
+    response_words = generate_response(model, prompt_ids, id_to_token, device)
+    return embeddings, attentions, next_logits, response_words
+
+
 # ===========================================================================
 # Routes
 # ===========================================================================
@@ -263,7 +284,7 @@ MAX_HISTORY_TURNS = 4
 
 
 @app.post("/chat")
-def chat(payload: ChatRequest, request: Request):
+async def chat(payload: ChatRequest, request: Request):
     model = request.app.state.model
     tokenizer = request.app.state.tokenizer
     device = request.app.state.device
@@ -306,9 +327,10 @@ def chat(payload: ChatRequest, request: Request):
         )
     prompt = torch.tensor([prompt_ids], dtype=torch.long, device=device)
 
-    embeddings, attentions, next_logits = debug_forward(model, prompt)
-
-    response_words = generate_response(model, prompt_ids, id_to_token, device)
+    async with inference_semaphore:
+        embeddings, attentions, next_logits, response_words = await asyncio.to_thread(
+            _run_inference, model, prompt, prompt_ids, id_to_token, device
+        )
 
     next_token_probs = F.softmax(next_logits[-1], dim=-1)
     topk = torch.topk(next_token_probs, k=min(TOP_K_LOGITS, next_token_probs.shape[-1]))
