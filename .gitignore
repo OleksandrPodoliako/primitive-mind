@@ -28,6 +28,8 @@ Thumbs.db
 
 .claude/
 
+.do/
+
 # Temporary validation scripts
 model/corpus_val.py
 model/corpus_val_2.py
