@@ -836,7 +836,7 @@
 
   // =========================================================== config
 
-  const API_BASE = "http://localhost:8000";
+  const API_BASE = "";
   const CATEGORY_ORDER = [
     "beings", "body_states", "nature", "food_and_hunt",
     "actions", "qualities", "time_and_direction",
@@ -975,10 +975,8 @@
       el.sendBtn.disabled = state.message.length === 0;
     } catch (err) {
       el.leftPanel.innerHTML =
-        '<div class="left-panel-message">Could not reach the backend at ' +
-        '<strong>' + API_BASE + '</strong>.<br><br>Start it with:<br>' +
-        '<code>cd backend &amp;&amp; poetry run uvicorn main:app --reload --port 8000</code>' +
-        '<br><br>then reload this page.</div>';
+        '<div class="left-panel-message">Could not reach the backend. ' +
+        'Please refresh the page.</div>';
       el.sendBtn.disabled = true;
     }
   }

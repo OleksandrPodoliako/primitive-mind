@@ -15,7 +15,7 @@ at every step.
 
 ## What it is
 
-A nanoGPT-style transformer (817k parameters) trained from 
+A nanoGPT-style transformer (821k parameters) trained from 
 scratch on a synthetic dialogue corpus built around a 
 hand-authored 120-word vocabulary. Every word is positioned 
 in a 6-dimensional semantic space (alive, size, motion, 
@@ -46,7 +46,7 @@ primitive-mind/
 ├── model/
 │   ├── embeddings.json       # 120-word vocabulary with 6-dim vectors
 │   ├── tokenizer.json        # word → token ID mapping
-│   ├── corpus_final.json     # 461 Claude-validated dialogues
+│   ├── corpus_final.json     # 1,297 Claude-validated dialogues
 │   ├── primitive_mind.pt     # trained model weights (Git LFS)
 │   ├── train.py              # nanoGPT training script
 │   ├── generate_corpus.py    # synthetic corpus generator
@@ -84,9 +84,9 @@ or serve with any static file server.
 | Layers | 4 |
 | Attention heads | 4 |
 | d_model | 128 |
-| Parameters | 817,280 |
+| Parameters | 821,376 |
 | Vocabulary | 120 words + 3 special tokens |
-| Training data | 461 dialogues, 4 turns each |
+| Training data | 1,297 dialogues (mixed 4 and 6 turns) |
 | Training | 50 epochs, AdamW, cosine decay |
 
 ---

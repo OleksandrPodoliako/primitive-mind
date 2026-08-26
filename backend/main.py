@@ -26,6 +26,7 @@ import torch
 import torch.nn.functional as F
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
@@ -35,6 +36,11 @@ MODEL_DIR = BACKEND_DIR.parent / "model"
 EMBEDDINGS_PATH = MODEL_DIR / "embeddings.json"
 TOKENIZER_PATH = MODEL_DIR / "tokenizer.json"
 CHECKPOINT_PATH = MODEL_DIR / "primitive_mind.pt"
+# Anchored to this file's location (not CWD) so it resolves correctly both
+# in the single-container deploy (CMD runs from /app, CWD == WORKDIR) and
+# in local dev (uvicorn normally launched from inside backend/, where a
+# literal "frontend/index.html" would resolve to a nonexistent path).
+FRONTEND_INDEX_PATH = BACKEND_DIR.parent / "frontend" / "index.html"
 MODEL_VERSION = "v2"
 
 sys.path.insert(0, str(MODEL_DIR))
@@ -262,6 +268,11 @@ def _run_inference(model, prompt, prompt_ids, id_to_token, device):
 # ===========================================================================
 # Routes
 # ===========================================================================
+
+@app.get("/")
+async def serve_frontend():
+    return FileResponse(FRONTEND_INDEX_PATH)
+
 
 class HistoryTurn(BaseModel):
     speaker: str
